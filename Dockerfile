@@ -1,5 +1,5 @@
 # set base image (host OS)
-FROM python:3.8
+FROM python:3.8-bullseye
 
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
@@ -11,17 +11,21 @@ RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources
 
 
 # Mongo
-RUN ln -s /bin/echo /bin/systemctl
-RUN wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | apt-key add -
-RUN echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/4.4 main" | tee /etc/apt/sources.list.d/mongodb-org-4.4.list
-RUN apt-get -y update
-RUN apt-get install -y mongodb-org
+# RUN ln -s /bin/echo /bin/systemctl
+# RUN wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | apt-key add -
+# RUN echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/4.4 main" | tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+# RUN apt-get -y update
+# RUN apt-get install -y mongodb-org
+
+# NodeJS
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
+RUN apt-get install -y nodejs
 
 # Install Yarn
 RUN apt-get install -y yarn
 
 # Install PIP
-RUN easy_install pip
+# RUN easy_install pip
 
 
 ENV ENV_TYPE staging
@@ -36,3 +40,5 @@ COPY src/requirements.txt .
 
 # install dependencies
 RUN pip install -r requirements.txt
+
+

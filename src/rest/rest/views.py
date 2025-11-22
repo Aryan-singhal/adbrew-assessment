@@ -5,16 +5,37 @@ from rest_framework import status
 import json, logging, os
 from pymongo import MongoClient
 
+
+from .repository import TodoRepository 
+
+
 mongo_uri = 'mongodb://' + os.environ["MONGO_HOST"] + ':' + os.environ["MONGO_PORT"]
 db = MongoClient(mongo_uri)['test_db']
 
+
+todo_repo = TodoRepository(db.todos)
+
 class TodoListView(APIView):
-
+    
     def get(self, request):
-        # Implement this method - return all todo items from db instance above.
-        return Response({}, status=status.HTTP_200_OK)
-        
-    def post(self, request):
-        # Implement this method - accept a todo item in a mongo collection, persist it using db instance above.
-        return Response({}, status=status.HTTP_200_OK)
+        try:
+            
+            todos = todo_repo.get_all_todos()
+            return Response(todos, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error: {str(e)}")
+            return Response({"error": "Fetch failed"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    def post(self, request):
+        try:
+            data = request.data
+            if 'description' not in data or not data['description'].strip():
+                return Response({"error": "Description required"}, status=status.HTTP_400_BAD_REQUEST)
+
+           
+            new_todo = todo_repo.create_todo(data['description'])
+            
+            return Response(new_todo, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            logger.error(f"Error: {str(e)}")
+            return Response({"error": "Creation failed"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
